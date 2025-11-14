@@ -1,16 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { tasksAPI, commentsAPI, activitiesAPI } from '@/api';
-import { FiX, FiEdit2, FiTrash2, FiPaperclip, FiUser, FiClock, FiMessageSquare, FiSend, FiDownload } from 'react-icons/fi';
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { tasksAPI, commentsAPI, activitiesAPI } from "@/api";
+import {
+  FiX,
+  FiEdit2,
+  FiTrash2,
+  FiPaperclip,
+  FiUser,
+  FiClock,
+  FiMessageSquare,
+  FiSend,
+  FiDownload,
+} from "react-icons/fi";
 
 interface Task {
   _id: string;
   title: string;
   description: string;
-  status: 'To Do' | 'In Progress' | 'Done';
-  priority: 'Low' | 'Medium' | 'High';
+  status: "To Do" | "In Progress" | "Done";
+  priority: "Low" | "Medium" | "High";
   dueDate?: string;
   assignee?: {
     _id: string;
@@ -64,11 +74,13 @@ export default function TaskDetailModal({
   const [task, setTask] = useState(initialTask);
   const [isEditing, setIsEditing] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'activity'>('details');
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "details" | "comments" | "activity"
+  >("details");
   const [activities, setActivities] = useState<any[]>([]);
 
   const [editData, setEditData] = useState({
@@ -76,8 +88,8 @@ export default function TaskDetailModal({
     description: task.description,
     status: task.status,
     priority: task.priority,
-    dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
-    assignee: task.assignee?._id || '',
+    dueDate: task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "",
+    assignee: task.assignee?._id || "",
   });
 
   useEffect(() => {
@@ -90,46 +102,51 @@ export default function TaskDetailModal({
       const response = await commentsAPI.getByTask(task._id);
       setComments(response.data);
     } catch (error) {
-      console.error('Failed to fetch comments:', error);
+      console.error("Failed to fetch comments:", error);
     }
   };
 
   const fetchActivities = async () => {
     try {
       const response = await activitiesAPI.getByProject(project._id);
-      const taskActivities = response.data.filter((a: any) => a.task?._id === task._id);
+      const taskActivities = response.data.filter(
+        (a: any) => a.task?._id === task._id
+      );
       setActivities(taskActivities);
     } catch (error) {
-      console.error('Failed to fetch activities:', error);
+      console.error("Failed to fetch activities:", error);
     }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     if (!editData.title.trim()) {
-      setError('Task title is required');
+      setError("Task title is required");
       return;
     }
 
     if (editData.title.trim().length < 3) {
-      setError('Task title must be at least 3 characters');
+      setError("Task title must be at least 3 characters");
       return;
     }
 
     if (editData.title.trim().length > 200) {
-      setError('Task title must be less than 200 characters');
+      setError("Task title must be less than 200 characters");
       return;
     }
 
     if (editData.description.trim().length > 1000) {
-      setError('Description must be less than 1000 characters');
+      setError("Description must be less than 1000 characters");
       return;
     }
 
-    if (editData.dueDate && new Date(editData.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))) {
-      setError('Due date cannot be in the past');
+    if (
+      editData.dueDate &&
+      new Date(editData.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
+    ) {
+      setError("Due date cannot be in the past");
       return;
     }
 
@@ -142,27 +159,30 @@ export default function TaskDetailModal({
         status: editData.status as any,
         priority: editData.priority as any,
         dueDate: editData.dueDate || undefined,
-        assignee: editData.assignee || undefined,
+        assignee: editData.assignee || null, // Send null to unassign, not undefined
       });
       setTask(response.data);
       setIsEditing(false);
       onUpdate();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update task. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          "Failed to update task. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this task?')) return;
+    if (!confirm("Are you sure you want to delete this task?")) return;
 
     try {
       await tasksAPI.delete(task._id);
       onUpdate();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete task');
+      setError(err.response?.data?.message || "Failed to delete task");
     }
   };
 
@@ -172,12 +192,15 @@ export default function TaskDetailModal({
 
     setCommentLoading(true);
     try {
-      await commentsAPI.create({ content: newComment.trim(), taskId: task._id });
-      setNewComment('');
+      await commentsAPI.create({
+        content: newComment.trim(),
+        taskId: task._id,
+      });
+      setNewComment("");
       fetchComments();
       fetchActivities();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add comment');
+      setError(err.response?.data?.message || "Failed to add comment");
     } finally {
       setCommentLoading(false);
     }
@@ -189,12 +212,12 @@ export default function TaskDetailModal({
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
+      setError("File size must be less than 10MB");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await tasksAPI.uploadAttachment(task._id, file);
@@ -202,9 +225,9 @@ export default function TaskDetailModal({
       setTask(response.data);
       onUpdate();
       // Reset file input
-      e.target.value = '';
+      e.target.value = "";
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to upload file');
+      setError(err.response?.data?.message || "Failed to upload file");
     } finally {
       setLoading(false);
     }
@@ -217,21 +240,24 @@ export default function TaskDetailModal({
       setTask(response.data);
       onUpdate();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete attachment');
+      setError(err.response?.data?.message || "Failed to delete attachment");
     }
   };
 
   const priorityColors = {
-    High: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    Medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    Low: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    High: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+    Medium:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+    Low: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{task.title}</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            {task.title}
+          </h2>
           <div className="flex items-center space-x-2">
             {!isEditing && (
               <>
@@ -270,38 +296,38 @@ export default function TaskDetailModal({
           <div className="p-6">
             <div className="flex space-x-2 mb-6 border-b border-gray-200 dark:border-gray-700">
               <button
-                onClick={() => setActiveTab('details')}
+                onClick={() => setActiveTab("details")}
                 className={`px-4 py-2 font-medium ${
-                  activeTab === 'details'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 dark:text-gray-400'
+                  activeTab === "details"
+                    ? "text-primary-600 border-b-2 border-primary-600"
+                    : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Details
               </button>
               <button
-                onClick={() => setActiveTab('comments')}
+                onClick={() => setActiveTab("comments")}
                 className={`px-4 py-2 font-medium ${
-                  activeTab === 'comments'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 dark:text-gray-400'
+                  activeTab === "comments"
+                    ? "text-primary-600 border-b-2 border-primary-600"
+                    : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Comments ({comments.length})
               </button>
               <button
-                onClick={() => setActiveTab('activity')}
+                onClick={() => setActiveTab("activity")}
                 className={`px-4 py-2 font-medium ${
-                  activeTab === 'activity'
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-500 dark:text-gray-400'
+                  activeTab === "activity"
+                    ? "text-primary-600 border-b-2 border-primary-600"
+                    : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 Activity
               </button>
             </div>
 
-            {activeTab === 'details' && (
+            {activeTab === "details" && (
               <div className="space-y-6">
                 {isEditing ? (
                   <form onSubmit={handleUpdate} className="space-y-4">
@@ -312,7 +338,9 @@ export default function TaskDetailModal({
                       <input
                         type="text"
                         value={editData.title}
-                        onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({ ...editData, title: e.target.value })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                         required
                       />
@@ -324,7 +352,12 @@ export default function TaskDetailModal({
                       </label>
                       <textarea
                         value={editData.description}
-                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            description: e.target.value,
+                          })
+                        }
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
@@ -337,7 +370,12 @@ export default function TaskDetailModal({
                         </label>
                         <select
                           value={editData.status}
-                          onChange={(e) => setEditData({ ...editData, status: e.target.value as any })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              status: e.target.value as any,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="To Do">To Do</option>
@@ -352,7 +390,12 @@ export default function TaskDetailModal({
                         </label>
                         <select
                           value={editData.priority}
-                          onChange={(e) => setEditData({ ...editData, priority: e.target.value as any })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              priority: e.target.value as any,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="Low">Low</option>
@@ -370,7 +413,12 @@ export default function TaskDetailModal({
                         <input
                           type="date"
                           value={editData.dueDate}
-                          onChange={(e) => setEditData({ ...editData, dueDate: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              dueDate: e.target.value,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
@@ -381,7 +429,12 @@ export default function TaskDetailModal({
                         </label>
                         <select
                           value={editData.assignee}
-                          onChange={(e) => setEditData({ ...editData, assignee: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              assignee: e.target.value,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="">Unassigned</option>
@@ -404,8 +457,10 @@ export default function TaskDetailModal({
                             description: task.description,
                             status: task.status,
                             priority: task.priority,
-                            dueDate: task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '',
-                            assignee: task.assignee?._id || '',
+                            dueDate: task.dueDate
+                              ? format(new Date(task.dueDate), "yyyy-MM-dd")
+                              : "",
+                            assignee: task.assignee?._id || "",
                           });
                         }}
                         className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -417,7 +472,7 @@ export default function TaskDetailModal({
                         disabled={loading}
                         className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        {loading ? 'Saving...' : 'Save Changes'}
+                        {loading ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
                   </form>
@@ -425,35 +480,55 @@ export default function TaskDetailModal({
                   <>
                     <div className="grid grid-cols-2 gap-6">
                       <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
-                        <p className="mt-1 text-gray-900 dark:text-white font-medium">{task.status}</p>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Status
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white font-medium">
+                          {task.status}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Priority</label>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Priority
+                        </label>
                         <p className="mt-1">
-                          <span className={`px-2 py-1 rounded text-sm font-medium ${priorityColors[task.priority]}`}>
+                          <span
+                            className={`px-2 py-1 rounded text-sm font-medium ${
+                              priorityColors[task.priority]
+                            }`}
+                          >
                             {task.priority}
                           </span>
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Assignee</label>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Assignee
+                        </label>
                         <p className="mt-1 text-gray-900 dark:text-white">
-                          {task.assignee ? task.assignee.name : 'Unassigned'}
+                          {task.assignee ? task.assignee.name : "Unassigned"}
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Due Date</label>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Due Date
+                        </label>
                         <p className="mt-1 text-gray-900 dark:text-white">
-                          {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No due date'}
+                          {task.dueDate
+                            ? format(new Date(task.dueDate), "MMM d, yyyy")
+                            : "No due date"}
                         </p>
                       </div>
                     </div>
 
                     {task.description && (
                       <div>
-                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Description</label>
-                        <p className="mt-1 text-gray-900 dark:text-white whitespace-pre-wrap">{task.description}</p>
+                        <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Description
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white whitespace-pre-wrap">
+                          {task.description}
+                        </p>
                       </div>
                     )}
 
@@ -469,7 +544,10 @@ export default function TaskDetailModal({
                               className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                             >
                               <div className="flex items-center space-x-3">
-                                <FiPaperclip className="text-gray-500 dark:text-gray-400" size={18} />
+                                <FiPaperclip
+                                  className="text-gray-500 dark:text-gray-400"
+                                  size={18}
+                                />
                                 <div>
                                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                                     {attachment.originalName}
@@ -481,7 +559,13 @@ export default function TaskDetailModal({
                               </div>
                               <div className="flex items-center space-x-2">
                                 <a
-                                  href={attachment.url || `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/uploads/${attachment.filename}`}
+                                  href={
+                                    attachment.url ||
+                                    `${process.env.NEXT_PUBLIC_API_URL?.replace(
+                                      "/api",
+                                      ""
+                                    )}/uploads/${attachment.filename}`
+                                  }
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   download={attachment.originalName}
@@ -492,7 +576,11 @@ export default function TaskDetailModal({
                                 </a>
                                 <button
                                   onClick={() => {
-                                    if (confirm('Are you sure you want to delete this attachment?')) {
+                                    if (
+                                      confirm(
+                                        "Are you sure you want to delete this attachment?"
+                                      )
+                                    ) {
                                       handleDeleteAttachment(attachment._id);
                                     }
                                   }}
@@ -505,7 +593,9 @@ export default function TaskDetailModal({
                             </div>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">No attachments</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No attachments
+                          </p>
                         )}
                         <label className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                           <input
@@ -516,7 +606,7 @@ export default function TaskDetailModal({
                             disabled={loading}
                           />
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {loading ? 'Uploading...' : '+ Add Attachment'}
+                            {loading ? "Uploading..." : "+ Add Attachment"}
                           </span>
                         </label>
                       </div>
@@ -526,7 +616,7 @@ export default function TaskDetailModal({
               </div>
             )}
 
-            {activeTab === 'comments' && (
+            {activeTab === "comments" && (
               <div className="space-y-4">
                 <form onSubmit={handleAddComment} className="flex space-x-2">
                   <input
@@ -547,10 +637,15 @@ export default function TaskDetailModal({
 
                 <div className="space-y-4">
                   {comments.length === 0 ? (
-                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">No comments yet</p>
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                      No comments yet
+                    </p>
                   ) : (
                     comments.map((comment) => (
-                      <div key={comment._id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                      <div
+                        key={comment._id}
+                        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4"
+                      >
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-sm">
                             {comment.author.name.charAt(0).toUpperCase()}
@@ -561,10 +656,15 @@ export default function TaskDetailModal({
                                 {comment.author.name}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {format(new Date(comment.createdAt), 'MMM d, yyyy h:mm a')}
+                                {format(
+                                  new Date(comment.createdAt),
+                                  "MMM d, yyyy h:mm a"
+                                )}
                               </p>
                             </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              {comment.content}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -574,20 +674,30 @@ export default function TaskDetailModal({
               </div>
             )}
 
-            {activeTab === 'activity' && (
+            {activeTab === "activity" && (
               <div className="space-y-4">
                 {activities.length === 0 ? (
-                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">No activity yet</p>
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                    No activity yet
+                  </p>
                 ) : (
                   activities.map((activity) => (
-                    <div key={activity._id} className="flex items-start space-x-3 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                    <div
+                      key={activity._id}
+                      className="flex items-start space-x-3 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0"
+                    >
                       <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold text-sm">
-                        {activity.user?.name?.charAt(0).toUpperCase() || 'U'}
+                        {activity.user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-gray-900 dark:text-white">{activity.description}</p>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {activity.description}
+                        </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {format(new Date(activity.createdAt), 'MMM d, yyyy h:mm a')}
+                          {format(
+                            new Date(activity.createdAt),
+                            "MMM d, yyyy h:mm a"
+                          )}
                         </p>
                       </div>
                     </div>
@@ -601,4 +711,3 @@ export default function TaskDetailModal({
     </div>
   );
 }
-
