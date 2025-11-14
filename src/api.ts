@@ -62,7 +62,7 @@ export const projectsAPI = {
 
 // Tasks API
 export const tasksAPI = {
-  getAll: (params?: { projectId?: string; assignee?: string; status?: string; search?: string; dueDate?: string }) =>
+  getAll: (params?: { projectId?: string; assignee?: string; status?: string; search?: string; dueDate?: string; priority?: string }) =>
     api.get('/tasks', { params }),
   getById: (id: string) => api.get(`/tasks/${id}`),
   create: (data: {
@@ -109,6 +109,9 @@ export const commentsAPI = {
 export const usersAPI = {
   getAll: (search?: string) => api.get('/users', { params: { search } }),
   getById: (id: string) => api.get(`/users/${id}`),
+  updateRole: (id: string, role: 'user' | 'admin') =>
+    api.put(`/users/${id}/role`, { role }),
+  getAllAdmin: () => api.get('/users/admin/all'),
 };
 
 // Activities API

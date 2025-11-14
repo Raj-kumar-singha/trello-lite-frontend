@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
-import { FiLogOut, FiMoon, FiSun, FiMenu, FiX } from 'react-icons/fi';
-import { useState } from 'react';
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import { FiLogOut, FiMoon, FiSun, FiMenu, FiX, FiShield } from "react-icons/fi";
+import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -15,16 +15,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   const getFirstName = (fullName?: string) => {
-    if (!fullName) return 'User';
-    return fullName.split(' ')[0];
+    if (!fullName) return "User";
+    return fullName.split(" ")[0];
   };
 
-  const isDashboardActive = pathname === '/dashboard';
-  const isProjectsActive = pathname?.startsWith('/projects');
+  const isDashboardActive = pathname === "/dashboard";
+  const isProjectsActive = pathname?.startsWith("/projects");
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-50 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
@@ -59,30 +59,45 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <nav className="space-y-2">
               <button
                 onClick={() => {
-                  router.push('/dashboard');
+                  router.push("/dashboard");
                   setSidebarOpen(false);
                 }}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   isDashboardActive
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? "bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 Dashboard
               </button>
               <button
                 onClick={() => {
-                  router.push('/dashboard');
+                  router.push("/dashboard");
                   setSidebarOpen(false);
                 }}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   isProjectsActive
-                    ? 'bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? "bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 Projects
               </button>
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => {
+                    router.push("/admin");
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors flex items-center ${
+                    pathname === "/admin"
+                      ? "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  Admin Panel
+                </button>
+              )}
             </nav>
           </div>
 
@@ -92,9 +107,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {user?.name}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {user?.name}
+                  </p>
+                  {user?.role === "admin" && (
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded">
+                      Admin
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {user?.email}
                 </p>
@@ -126,7 +148,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 title="Toggle theme"
               >
-                {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
+                {theme === "dark" ? <FiSun size={20} /> : <FiMoon size={20} />}
               </button>
               <button
                 onClick={handleLogout}
@@ -145,4 +167,3 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

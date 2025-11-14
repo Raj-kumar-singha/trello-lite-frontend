@@ -86,7 +86,7 @@ export default function KanbanBoard({
     if (mounted && !isDraggingRef.current) {
       fetchTasks();
     }
-  }, [projectId, filterAssignee, filterPriority, filterDueDate, mounted]);
+  }, [projectId, filterAssignee, filterPriority, filterDueDate, searchQuery, mounted]);
 
   const fetchTasks = async () => {
     // Don't fetch if currently dragging
@@ -101,6 +101,7 @@ export default function KanbanBoard({
       if (filterAssignee) params.assignee = filterAssignee;
       if (filterPriority) params.priority = filterPriority;
       if (filterDueDate) params.dueDate = filterDueDate;
+      if (searchQuery.trim()) params.search = searchQuery.trim();
       const response = await tasksAPI.getAll(params);
       const tasksData = response.data;
       setTasks(tasksData);
@@ -113,18 +114,8 @@ export default function KanbanBoard({
     }
   };
 
-  const filteredTasks = tasks.filter((task) => {
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      if (
-        !task.title.toLowerCase().includes(query) &&
-        !task.description?.toLowerCase().includes(query)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  });
+  // Tasks are already filtered by backend, no need for client-side filtering
+  const filteredTasks = tasks;
 
   const getTasksByStatus = (status: string) => {
     return filteredTasks
